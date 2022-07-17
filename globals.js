@@ -43,6 +43,11 @@ exports.test_field = function (value, field) {
   }
   return reg.test(value); 
 }
+// test start and end date and today
+exports.test_dates = function (start_d, end_d){
+  var now = new Date()
+  return (start_d - end_d < 0 && start_d > now)
+}
 
 /* ENCRYPTION */
 const salt_length = 10;
@@ -75,13 +80,4 @@ exports.pretty_datetime = function (datetime_str) {
   var hour = datetime.getHours();
   var minute = datetime.getMinutes();
   return day + '/' + month + '/' + year + ' at ' + hour + ':' + minute;
-}
-// format titles
-function toTitleCase(str) {
-  return str.replace(
-    /\w\S*/g,
-    function(txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    }
-  );
 }

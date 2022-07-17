@@ -318,6 +318,59 @@ app.get('/create_meet', (req, res) => {
 })
 
 // create a meet
+app.post('/create_meet', (req, res) => {
+  var session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  // getting meet info
+  var response = {
+    title : String(req.body.title),
+    desc : String(req.body.desc),
+    start_d : new Date(String(req.body.start_d)),
+    end_d : new Date(String(req.body.end_d))
+  };
+  // validating info
+  var info_valid = globals.test_field(response.title, "titles") && globals.test_field(response.desc, "descriptions") && globals.test_dates(response.start_d, response.end_d) 
+  if (!info_valid)
+    return res.render('create_meet', {
+      session : session,
+      urls : urls,
+      message : "The info is not in the correct form!"
+    }) 
+  // creating a database connection and inserting the data
+  var con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  var now = new Date()
+  con.connect()
+  con.query("insert into meet values(?, ?, ?, ?, ?, ?, ?)", [ uuid.v4(), response.title, response.desc, response.start_d, response.end_d, now, session.cin ], function (error, results, fields) {
+    if(error){
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    }
+    else{
+     res.render('create_meet', {
+       session : session,
+       urls : urls,
+       message : "Meet created, go to my meet's page to modify the meet and add participants."
+     })  
+    }
+  });
+  con.end();
+})
 
 // default route for all http methods
 app.use(function(req, res){
