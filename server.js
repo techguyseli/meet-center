@@ -46,6 +46,10 @@ var urls = {
   invites : globals.render_url('invites'),
   my_meets : globals.render_url('my_meets'),
   create_meet : globals.render_url('create_meet'),
+  delete_meet : globals.render_url('delete_meet'),
+  modify_meet : globals.render_url('modify_meet'),
+  remove_participant : globals.render_url('remove_participant'),
+  add_participant : globals.render_url('add_participant'),
 }
 // default get route
 app.get('/', (req, res) => {
@@ -65,8 +69,9 @@ app.get('/invites', (req, res) => {
     password: globals.password,
     database: globals.database
   });
+  var now = new Date()
   con.connect()
-  con.query('select title, description, announcement_datetime, start_datetime, end_datetime, first_name, last_name, email, phone, responsability from meet join participant on code = meet_code join employee on meet_owner = cin where meet_owner = ? or emp_cin = ?', [session.cin, session.cin], function (error, results) {
+  con.query('select title, description, announcement_datetime, start_datetime, end_datetime, first_name, last_name, email, phone, responsability from meet join participant on code = meet_code join employee on meet_owner = cin where emp_cin = ? and end_datetime > ?', [session.cin, now], function (error, results) {
     // check if there were any database errors while updating the password 
     if (error)
       res.render('error', {
@@ -144,7 +149,7 @@ app.post('/login', (req, res) => {
           session.cin = results[0].cin
           session.email=response.email; 
           session.password = globals.encrypt(response.password)
-          res.redirect("/")
+          res.redirect("/invites")
         }
         else{
           res.render('login', {
@@ -265,7 +270,7 @@ app.get('/my_meets', (req, res) => {
       message: "",
       session: session
     });
-  // get invites
+  // get meets
   var con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
@@ -275,7 +280,7 @@ app.get('/my_meets', (req, res) => {
   var now = new Date()
   con.connect()
   con.query('select code, title, description, announcement_datetime, start_datetime, end_datetime from meet where meet_owner = ? and end_datetime > ? order by start_datetime', [session.cin, now], function (error, results) {
-    // check if there were any database errors while updating the password 
+    // check if there were any database errors 
     if (error)
       res.render('error', {
         code: 500,
@@ -371,6 +376,87 @@ app.post('/create_meet', (req, res) => {
   });
   con.end();
 })
+
+// delete a meet
+app.get('/delete_meet/:meet_code', (req, res) => {
+  var session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  // deleting the meet with the provided code THAT BELONGS TO THE USER
+  var con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  var now = new Date()
+  con.connect()
+  con.query("delete from meet where code = ? and meet_owner = ? and start_datetime > ?", [ String(req.params.meet_code), session.cin, now ], function (error, results, fields) {
+    if(error || results.affectedRows == 0)
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    else
+      res.redirect('/my_meets')
+  });
+  con.end();
+})
+
+// getting a meet's mod page
+app.get('/modify_meet/:meet_code', (req, res) => {
+  var session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  // getting the meet's info and participants
+  var con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  var now = new Date()
+  con.connect()
+  con.query("select code, title, description, start_datetime, end_datetime, email, cin from meet left join participant on code = meet_code left join employee on emp_cin = cin where code = ? and meet_owner = ? and end_datetime > ?", [ String(req.params.meet_code), session.cin, now ], function (error, results, fields) {
+    if(error || results.length == 0)
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    else
+      res.render('modify_meet', {
+        session : session,
+        urls : urls,
+        results : results,
+        message : null,
+        now : new Date()
+      })
+  });
+  con.end();
+
+});
+
+// modifying a meet
+app.post('/modify_meet', (req, res) => {
+   
+});
+
 
 // default route for all http methods
 app.use(function(req, res){
