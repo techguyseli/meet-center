@@ -12,18 +12,18 @@ console.log("You are now going to add an admin to the meeting center app.");
 
 /* GETTING USER INPUT */
 // variables
-var cin, first_name, last_name, email, password, phone, resp;
+var matr, first_name, last_name, email, password, phone, resp;
 do{
   // fields specs
   console.log("Please fill everything as follows:\n");
-  console.log("cin: 5 or 2 letters followed by 6 numbers.");
+  console.log("matr: 5 or 2 letters followed by 6 numbers.");
   console.log("first and last name: between 5 and 20 letters each.");
   console.log("email: has to be in this domain @alamana.org.ma.");
   console.log("password: needs to be between 12 and 40 characters.\n");
   // input gathering and testing
-  cin = readline.question("CIN: ");
-  if(!globals.test_field(cin, "cin")){
-    console.log("the cin is not in the desired form, please read the fields specifications.\n");
+  matr = readline.question("matr: ");
+  if(!globals.test_field(matr, "code")){
+    console.log("the matr is not in the desired form, please read the fields specifications.\n");
     continue;
   }
   first_name = readline.question("First Name: ");
@@ -82,7 +82,7 @@ con.connect(function(err) {
     console.log("\n+ connected to the database.");
   var sql = "insert into employee values ?";
   var values = [
-    [ cin, first_name, last_name, email, password_hash, true, phone, resp ]
+    [ matr, first_name, last_name, email, password_hash, true, phone, resp ]
   ];
   con.query(sql, [values], function (err, result) {
     if (err) throw err;

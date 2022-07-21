@@ -16,9 +16,6 @@ exports.database = "reunion_center";
 exports.test_field = function (value, field) {
   var reg;
   switch(field){
-    case "cin":
-      reg = /^[a-zA-Z]{1,2}[0-9]{6}$/;
-      break;
     case "name":
       reg = /^[a-zA-Z]{1,20}$/;
       break;
@@ -36,6 +33,9 @@ exports.test_field = function (value, field) {
       break;
     case "phone":
       reg = /^[0-9]{10}$/;
+      break;
+    case "code":
+      reg = /^.{10,50}$/;
       break;
 
     default:
@@ -63,11 +63,8 @@ exports.compare_passwords = function (password, hash) {
 };
 
 /* SERVER AND URLS */
-exports.web_protocol = "http"
-exports.server_port = 3000
-exports.domain = "localhost"
 exports.render_url = function(page){
-  return exports.web_protocol + "://" + exports.domain + ":" + String(exports.server_port) + "/" + page + "/"
+  return "http://localhost:3000/" + page + "/"
 }
 
 /* CONVENIENCE */
@@ -76,8 +73,23 @@ exports.pretty_datetime = function (datetime_str) {
   var datetime = new Date(datetime_str)
   var year = datetime.getFullYear(); 
   var month = datetime.getMonth() + 1;
+  if (month < 10) month = '0' + String(month)
   var day = datetime.getDate();
+  if (day < 10) day = '0' + String(day)
   var hour = datetime.getHours();
+  if (hour < 10) hour = '0' + String(hour)
   var minute = datetime.getMinutes();
+  if (minute < 10) minute = '0' + String(minute)
   return day + '/' + month + '/' + year + ' at ' + hour + ':' + minute;
+}
+// return a properly timezoned date
+exports.get_tz_date = function (datetime_str){
+  var datetime = new Date(datetime_str)
+  var year = datetime.getFullYear(); 
+  var month = datetime.getMonth();
+  var day = datetime.getDate();
+  var hour = datetime.getHours() + 1;
+  var minute = datetime.getMinutes();
+  var new_datetime = new Date(year, month, day, hour, minute, 0)
+  return new_datetime
 }

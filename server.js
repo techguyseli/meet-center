@@ -2,7 +2,7 @@
 const express = require('express') // importing the web dev module 'express'
 const app = express() // setting this project to be an express app
 const server = require('http').Server(app) // importing http server
-var mysql = require('mysql'); // mysql interface
+let mysql = require('mysql'); // mysql interface
 const globals = require('./globals') // importing global variables and functions
 const body_parser = require('body-parser') // importing a module to get sent data in a post request
 const cookieParser = require("cookie-parser"); // module for managing cookies
@@ -38,7 +38,7 @@ app.use(cookieParser());
  * urls
 */
 // urls gathered for easy passing
-var urls = {
+let urls = {
   login : globals.render_url('login'),
   logout : globals.render_url('logout'),
   account_settings : globals.render_url('account_settings'),
@@ -50,6 +50,10 @@ var urls = {
   modify_meet : globals.render_url('modify_meet'),
   remove_participant : globals.render_url('remove_participant'),
   add_participant : globals.render_url('add_participant'),
+  view_employees : globals.render_url('view_employees'),
+  add_employee : globals.render_url('add_employee'),
+  modify_employee : globals.render_url('modify_employee'),
+  remove_employee : globals.render_url('remove_employee'),
 }
 // default get route
 app.get('/', (req, res) => {
@@ -58,20 +62,20 @@ app.get('/', (req, res) => {
 
 // meetings' invites route
 app.get('/invites', (req, res) => {
-  var session = req.session
+  let session = req.session
   // take visitors to login 
   if(!session.email)
     return res.redirect('/login')
   // get invites
-  var con = mysql.createConnection({
+  let con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
     password: globals.password,
     database: globals.database
   });
-  var now = new Date()
+  let now = new Date()
   con.connect()
-  con.query('select title, description, announcement_datetime, start_datetime, end_datetime, first_name, last_name, email, phone, responsability from meet join participant on code = meet_code join employee on meet_owner = cin where emp_cin = ? and end_datetime > ?', [session.cin, now], function (error, results) {
+  con.query('select title, description, announcement_datetime, start_datetime, end_datetime, first_name, last_name, email, phone, responsability from meet join participant on code = meet_code join employee on meet_owner = matr where emp_matr = ? and end_datetime > ?', [session.matr, now], function (error, results) {
     // check if there were any database errors while updating the password 
     if (error)
       res.render('error', {
@@ -83,7 +87,7 @@ app.get('/invites', (req, res) => {
       });
     else {
       // making the dates pretty
-      for (var i = 0; i < results.length; i++){
+      for (let i = 0; i < results.length; i++){
         results[i].announcement_datetime = globals.pretty_datetime(results[i].announcement_datetime.toString())
         results[i].start_datetime = globals.pretty_datetime(results[i].start_datetime.toString())
         results[i].end_datetime = globals.pretty_datetime(results[i].end_datetime.toString())
@@ -100,7 +104,7 @@ app.get('/invites', (req, res) => {
 
 // login get route
 app.get('/login', (req, res) => {
-  var session = req.session
+  let session = req.session
   // redirect visitors to login
   if (!session.email)
     return res.render('login', {
@@ -114,23 +118,23 @@ app.get('/login', (req, res) => {
 
 // login post route
 app.post('/login', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (session.email)
     return res.redirect("/")
   // getting email and password
-  var response = {
+  let response = {
     email : String(req.body.email),
     password : String(req.body.password)
   };
   // creating a database connection
-  var con = mysql.createConnection({
+  let con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
     password: globals.password,
     database: globals.database
   });
   con.connect()
-  con.query("select cin, email, password from employee where email = ?", [response.email], function (error, results, fields) {
+  con.query("select matr, email, is_admin, password from employee where email = ?", [response.email], function (error, results, fields) {
     if(error){
       // managing database errors
       res.render('error', {
@@ -146,9 +150,10 @@ app.post('/login', (req, res) => {
       if (results.length){
         if (globals.compare_passwords(response.password, results[0].password)) {
           // add user session
-          session.cin = results[0].cin
+          session.matr = results[0].matr
           session.email=response.email; 
           session.password = globals.encrypt(response.password)
+          session.is_admin = results[0].is_admin
           res.redirect("/invites")
         }
         else{
@@ -173,7 +178,7 @@ app.post('/login', (req, res) => {
 
 // logout
 app.get('/logout', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (session.email)
     session.destroy();
   return res.redirect('/login');
@@ -181,7 +186,7 @@ app.get('/logout', (req, res) => {
 
 // account settings
 app.get('/account_settings', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (!session.email)
     return res.redirect('/login');
   return res.render('account_settings', {
@@ -193,11 +198,11 @@ app.get('/account_settings', (req, res) => {
 
 // change password post
 app.post('/change_password', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (!session.email)
     return res.redirect('/login')
   // getting email and password
-  var response = {
+  let response = {
     old_pass : String(req.body.old_password),
     new_pass : String(req.body.new_password),
     pass_repeat : String(req.body.password_repeat)
@@ -231,8 +236,8 @@ app.post('/change_password', (req, res) => {
       session: session
     })
   // update the password
-  var pass_hash = globals.encrypt(response.new_pass)
-  var con = mysql.createConnection({
+  let pass_hash = globals.encrypt(response.new_pass)
+  let con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
     password: globals.password,
@@ -263,7 +268,7 @@ app.post('/change_password', (req, res) => {
 
 // my meetings page
 app.get('/my_meets', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (!session.email)
     return res.render('login', {
       urls : urls,
@@ -271,15 +276,15 @@ app.get('/my_meets', (req, res) => {
       session: session
     });
   // get meets
-  var con = mysql.createConnection({
+  let con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
     password: globals.password,
     database: globals.database
   });
-  var now = new Date()
+  let now = new Date()
   con.connect()
-  con.query('select code, title, description, announcement_datetime, start_datetime, end_datetime from meet where meet_owner = ? and end_datetime > ? order by start_datetime', [session.cin, now], function (error, results) {
+  con.query('select code, title, description, announcement_datetime, start_datetime, end_datetime from meet where meet_owner = ? and end_datetime > ? order by start_datetime', [session.matr, now], function (error, results) {
     // check if there were any database errors 
     if (error)
       res.render('error', {
@@ -291,7 +296,7 @@ app.get('/my_meets', (req, res) => {
       });
     else {
       // making the dates pretty
-      for (var i = 0; i < results.length; i++){
+      for (let i = 0; i < results.length; i++){
         results[i].announcement_datetime = globals.pretty_datetime(results[i].announcement_datetime.toString())
         results[i].start_datetime = globals.pretty_datetime(results[i].start_datetime.toString())
         results[i].end_datetime = globals.pretty_datetime(results[i].end_datetime.toString())
@@ -308,7 +313,7 @@ app.get('/my_meets', (req, res) => {
 
 // create a new meet Page
 app.get('/create_meet', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (!session.email)
     return res.render('login', {
       urls : urls,
@@ -324,7 +329,7 @@ app.get('/create_meet', (req, res) => {
 
 // create a meet
 app.post('/create_meet', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (!session.email)
     return res.render('login', {
       urls : urls,
@@ -332,14 +337,14 @@ app.post('/create_meet', (req, res) => {
       session: session
     });
   // getting meet info
-  var response = {
+  let response = {
     title : String(req.body.title),
     desc : String(req.body.desc),
     start_d : new Date(String(req.body.start_d)),
     end_d : new Date(String(req.body.end_d))
   };
   // validating info
-  var info_valid = globals.test_field(response.title, "titles") && globals.test_field(response.desc, "descriptions") && globals.test_dates(response.start_d, response.end_d) 
+  let info_valid = globals.test_field(response.title, "titles") && globals.test_field(response.desc, "descriptions") && globals.test_dates(response.start_d, response.end_d) 
   if (!info_valid)
     return res.render('create_meet', {
       session : session,
@@ -347,15 +352,15 @@ app.post('/create_meet', (req, res) => {
       message : "The info is not in the correct form!"
     }) 
   // creating a database connection and inserting the data
-  var con = mysql.createConnection({
+  let con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
     password: globals.password,
     database: globals.database
   });
-  var now = new Date()
+  let now = new Date()
   con.connect()
-  con.query("insert into meet values(?, ?, ?, ?, ?, ?, ?)", [ uuid.v4(), response.title, response.desc, response.start_d, response.end_d, now, session.cin ], function (error, results, fields) {
+  con.query("insert into meet values(?, ?, ?, ?, ?, ?, ?)", [ uuid.v4(), response.title, response.desc, response.start_d, response.end_d, now, session.matr ], function (error, results, fields) {
     if(error){
       // managing database errors
       res.render('error', {
@@ -379,7 +384,7 @@ app.post('/create_meet', (req, res) => {
 
 // delete a meet
 app.get('/delete_meet/:meet_code', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (!session.email)
     return res.render('login', {
       urls : urls,
@@ -387,15 +392,15 @@ app.get('/delete_meet/:meet_code', (req, res) => {
       session: session
     });
   // deleting the meet with the provided code THAT BELONGS TO THE USER
-  var con = mysql.createConnection({
+  let con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
     password: globals.password,
     database: globals.database
   });
-  var now = new Date()
+  let now = new Date()
   con.connect()
-  con.query("delete from meet where code = ? and meet_owner = ? and start_datetime > ?", [ String(req.params.meet_code), session.cin, now ], function (error, results, fields) {
+  con.query("delete from meet where code = ? and meet_owner = ? and start_datetime > ?", [ String(req.params.meet_code), session.matr, now ], function (error, results, fields) {
     if(error || results.affectedRows == 0)
       // managing database errors
       res.render('error', {
@@ -413,7 +418,7 @@ app.get('/delete_meet/:meet_code', (req, res) => {
 
 // getting a meet's mod page
 app.get('/modify_meet/:meet_code', (req, res) => {
-  var session = req.session
+  let session = req.session
   if (!session.email)
     return res.render('login', {
       urls : urls,
@@ -421,15 +426,15 @@ app.get('/modify_meet/:meet_code', (req, res) => {
       session: session
     });
   // getting the meet's info and participants
-  var con = mysql.createConnection({
+  let con = mysql.createConnection({
     host: globals.host,
     user: globals.user,
     password: globals.password,
     database: globals.database
   });
-  var now = new Date()
+  let now = new Date()
   con.connect()
-  con.query("select code, title, description, start_datetime, end_datetime, email, cin from meet left join participant on code = meet_code left join employee on emp_cin = cin where code = ? and meet_owner = ? and end_datetime > ?", [ String(req.params.meet_code), session.cin, now ], function (error, results, fields) {
+  con.query("select code, title, description, start_datetime, end_datetime, email, matr from meet left join participant on code = meet_code left join employee on emp_matr = matr where code = ? and meet_owner = ? and end_datetime > ?", [ String(req.params.meet_code), session.matr, now ], function (error, results, fields) {
     if(error || results.length == 0)
       // managing database errors
       res.render('error', {
@@ -454,20 +459,448 @@ app.get('/modify_meet/:meet_code', (req, res) => {
 
 // modifying a meet
 app.post('/modify_meet', (req, res) => {
-   
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  // getting meet info
+  let response = {
+    code : String(req.body.code),
+    title : String(req.body.title),
+    desc : String(req.body.desc),
+    start_d : globals.get_tz_date(String(req.body.start_d)),
+    end_d : globals.get_tz_date(String(req.body.end_d))
+  };
+  // validating info
+  let info_valid = globals.test_field(response.code, 'code') && globals.test_field(response.title, "titles") && globals.test_field(response.desc, "descriptions") && globals.test_dates(response.start_d, response.end_d) 
+  if (!info_valid)
+    return res.render('modify_meet', {
+      session : session,
+      urls : urls,
+      message : "The info is not in the correct form!"
+    }) 
+  // creating a database connection and updating the data
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  let now = new Date()
+  con.connect()
+  con.query("update meet set title = ?, description = ?, start_datetime = ?, end_datetime = ? where code = ? and start_datetime > ? and meet_owner = ?", [ response.title, response.desc, response.start_d, response.end_d, response.code, now, session.matr ], function (error, results, fields) {
+    if(error || results.affectedRows == 0){
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    }
+    else{
+     res.redirect('/modify_meet/' + response.code)    
+    }
+  });
+  con.end();
 });
 
+// removing a participant from a meet's participant list
+app.post('/remove_participant', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  let response = {
+    emp_matr : String(req.body.emp_matr),
+    meet_code : String(req.body.meet_code)
+  };
+  // deleting the participant
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  let now = new Date()
+  con.connect()
+  con.query("delete from participant where emp_matr in(select emp_matr from participant join meet on code = meet_code where meet_owner = ? and code = ? and end_datetime > ? and emp_matr = ?)", [ session.matr, response.meet_code, now, response.emp_matr ], function (error, results, fields) {
+    if(error || results.affectedRows == 0)
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    else
+      res.redirect('/modify_meet/' + response.meet_code)
+  });
+  con.end();
+})
 
+// add a participant to a meet
+app.post('/add_participant', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  // getting necessary info
+  let response = {
+    meet_code : String(req.body.meet_code),
+    email : String(req.body.email)
+  };
+  // creating a database connection and inserting the data
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  let now = new Date()
+  con.connect()
+  con.query("insert into participant(emp_matr, meet_code) select matr, ? as code from employee where email = ? and exists(select 'does_exist' as does_exist from meet where meet_owner = ? and code = ?) and email not in(select email from participant join employee on emp_matr = matr where email = ? and meet_code = ?)", [ response.meet_code, response.email, session.matr, response.meet_code, response.email, response.meet_code ], function (error, results, fields) {
+    if(error){
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    }
+    else if (results.affectedRows == 0){
+      res.render('error', {
+        code: 'Oops',
+        title: "Invalid Email",
+        message: "The email you tried to add doesn't exist.",
+        urls : urls,
+        session: session
+      });
+    }
+    else{
+      res.redirect('/modify_meet/' + response.meet_code)
+    }
+  });
+  con.end();
+})
+
+
+/* ADMIN ROUTES */
+// get employees details
+app.get('/view_employees', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  if (! session.is_admin)
+    return res.render('error', {
+      code: 404,
+      title: "Page Not Found",
+      message: "The page you requested doesn't exist.",
+      urls : urls,
+      session: session
+    });
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  con.connect()
+  con.query("select matr, first_name, last_name, email, is_admin, phone, responsability as resp from employee where matr != ?", [session.matr], function (error, results, fields) {
+    if(error)
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    else
+      res.render('view_employees', {
+        results : results,
+        urls : urls,
+        session: session
+      });
+  });
+  con.end();
+})
+
+// remove employee
+app.post('/remove_employee', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  if (! session.is_admin)
+    return res.render('error', {
+      code: 404,
+      title: "Page Not Found",
+      message: "The page you requested doesn't exist.",
+      urls : urls,
+      session: session
+    });
+  // getting matr
+  let response = {
+    matr : String(req.body.matr)
+  };
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  con.connect()
+  con.query("delete from employee where matr = ? and email != ?", [ response.matr, session.email ], function (error, results, fields) {
+    if(error)
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    else
+      res.redirect('/view_employees')
+  });
+  con.end();
+})
+
+app.get('/add_employee', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  if (! session.is_admin)
+    return res.render('error', {
+      code: 404,
+      title: "Page Not Found",
+      message: "The page you requested doesn't exist.",
+      urls : urls,
+      session: session
+    });
+  return res.render('add_employee', {
+    urls : urls,
+    session : session,
+    message : ""
+  })
+})
+
+// add an employee
+app.post('/add_employee', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  if (! session.is_admin)
+    return res.render('error', {
+      code: 404,
+      title: "Page Not Found",
+      message: "The page you requested doesn't exist.",
+      urls : urls,
+      session: session
+    });
+  // getting necessary info
+  let response = {
+    f_name : String(req.body.f_name),
+    l_name : String(req.body.l_name),
+    email : String(req.body.email),
+    pass : String(req.body.pass),
+    is_admin : String(req.body.is_admin),
+    phone : String(req.body.phone),
+    resp : String(req.body.resp)
+  };
+  // testing if the provided info is valid
+  let info_valid = globals.test_field(response.f_name, "name") && globals.test_field(response.l_name, "name") && globals.test_field(response.email, "email") && globals.test_field(response.pass, "password_cleartext") && globals.test_field(response.phone, "phone") && globals.test_field(response.resp, "titles")
+  if (response.is_admin == 'true') response.is_admin = true
+  else response.is_admin = false
+  if (!info_valid)
+    return res.render('add_employee', {
+      session : session,
+      urls : urls,
+      message : "The info is not in the correct form!"
+    }) 
+  // creating a database connection and inserting the data
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  con.connect()
+  con.query("insert into employee select ? as matr, ? as f_name, ? as l_name, ? as email, ? as pass, ? as admin, ? as phone, ? as resp where ? not in(select email from employee)", [ uuid.v4(), response.f_name, response.l_name, response.email, globals.encrypt(response.pass), response.is_admin, response.phone, response.resp, response.email], function (error, results, fields) {
+    if(error){
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    }
+    else if (results.affectedRows == 0){
+      res.render('error', {
+        code: 'Oops',
+        title: "Unique Values Repeated",
+        message: "The email and/or phone number you provided may already exist in the database.",
+        urls : urls,
+        session: session
+      });
+    }
+    else{
+      res.render('add_employee', {
+        message: "Employee added successfully.",
+        urls : urls,
+        session: session
+      });
+    }
+  });
+  con.end();
+})
+
+app.get('/modify_employee_get', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  if (! session.is_admin)
+    return res.render('error', {
+      code: 404,
+      title: "Page Not Found",
+      message: "The page you requested doesn't exist.",
+      urls : urls,
+      session: session
+    });
+  return res.render('add_employee', {
+    urls : urls,
+    session : session,
+    message : ""
+  })
+})
+
+// add an employee
+app.post('/add_employee', (req, res) => {
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
+  if (! session.is_admin)
+    return res.render('error', {
+      code: 404,
+      title: "Page Not Found",
+      message: "The page you requested doesn't exist.",
+      urls : urls,
+      session: session
+    });
+  // getting necessary info
+  let response = {
+    f_name : String(req.body.f_name),
+    l_name : String(req.body.l_name),
+    email : String(req.body.email),
+    pass : String(req.body.pass),
+    is_admin : String(req.body.is_admin),
+    phone : String(req.body.phone),
+    resp : String(req.body.resp)
+  };
+  // testing if the provided info is valid
+  let info_valid = globals.test_field(response.f_name, "name") && globals.test_field(response.l_name, "name") && globals.test_field(response.email, "email") && globals.test_field(response.pass, "password_cleartext") && globals.test_field(response.phone, "phone") && globals.test_field(response.resp, "titles")
+  if (response.is_admin == 'true') response.is_admin = true
+  else response.is_admin = false
+  if (!info_valid)
+    return res.render('add_employee', {
+      session : session,
+      urls : urls,
+      message : "The info is not in the correct form!"
+    }) 
+  // creating a database connection and inserting the data
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  con.connect()
+  con.query("insert into employee select ? as matr, ? as f_name, ? as l_name, ? as email, ? as pass, ? as admin, ? as phone, ? as resp where ? not in(select email from employee)", [ uuid.v4(), response.f_name, response.l_name, response.email, globals.encrypt(response.pass), response.is_admin, response.phone, response.resp, response.email], function (error, results, fields) {
+    if(error){
+      // managing database errors
+      res.render('error', {
+        code: 500,
+        title: "Internal Server Error",
+        message: "Something went wrong, please try again later or contact the admins.",
+        urls : urls,
+        session: session
+      });
+    }
+    else if (results.affectedRows == 0){
+      res.render('error', {
+        code: 'Oops',
+        title: "Unique Values Repeated",
+        message: "The email and/or phone number you provided may already exist in the database.",
+        urls : urls,
+        session: session
+      });
+    }
+    else{
+      res.render('add_employee', {
+        message: "Employee added successfully.",
+        urls : urls,
+        session: session
+      });
+    }
+  });
+  con.end();
+})
 // default route for all http methods
 app.use(function(req, res){
+  let session = req.session
+  if (!session.email)
+    return res.render('login', {
+      urls : urls,
+      message: "",
+      session: session
+    });
   return res.render('error', {
     code: 404,
     title: "Page Not Found",
     message: "The page you requested doesn't exist.",
     urls : urls,
-    session: req.session
+    session: session
   });
 });
 
 
-server.listen(3000) // opening a web server on port 3000
+server.listen(3000) // opening a web server on the specified port

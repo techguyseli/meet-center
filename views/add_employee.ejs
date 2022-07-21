@@ -1,0 +1,32 @@
+<%- include('./partials/header'); %>
+<% if (message) { %>
+<div class="alert alert-warning" role="alert">
+  <%= message %>
+</div>
+<% } %>
+<form action="<%= urls.add_employee %>" method="post" class="w-75 mx-auto">
+    <div class="text-light mb-2">First Name</div>
+    <input type="text" class="form-control mb-3" name="f_name" id="f_name" oninput="validate_fields()">
+    <div class="text-light mb-2">Last Name</div>
+    <input type="text" class="form-control mb-3" name="l_name" id="l_name" oninput="validate_fields()">
+    <div class="text-light mb-2">Email</div>
+    <input type="text" class="form-control mb-3" name="email" id="email" oninput="validate_fields()">
+    <div class="text-light mb-2">Password</div>
+    <input type="password" class="form-control mb-3" name="pass" id="pass" oninput="validate_fields()">
+    <div class="text-light mb-2">System Status</div>
+    <select name="is_admin" onchange='validate_fields()'>
+      <option value='false' selected="selected">Employee</option>
+      <option value='true'>Admin</option>
+    </select>
+    <div class="text-light mb-2">Phone</div>
+    <input type="text" class="form-control mb-3" name="phone" id="phone" oninput="validate_fields()">
+    <div class="text-light mb-2">Responsability</div>
+    <input type="text" class="form-control mb-3" name="resp" id="resp" oninput="validate_fields()">
+    <div id="warn" class="alert alert-danger mb-3" role="alert" hidden="true">
+    </div>
+    <button id="submitbtn" type="submit" class="btn btn-primary mb-3" disabled>Create meet</button>
+</form>
+</div>
+<script src="/js/emp_validation.js"></script>
+<script src="/js/no_go_back.js"></script>
+<%- include('./partials/footer'); %>

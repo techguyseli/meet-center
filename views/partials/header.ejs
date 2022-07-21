@@ -32,6 +32,17 @@
             <li class="nav-item">
               <a class="nav-link" aria-current="page" href="<%= urls.account_settings %>">Account</a>
             </li>
+            <% if (session.is_admin) { %>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Employees
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="<%= urls.view_employees %>">View employees</a></li>
+                <li><a class="dropdown-item" href="<%= urls.add_employee %>">Add an employee</a></li>
+              </ul>
+            </li>
+            <% } %>
           </ul>
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             <li class="nav-item">
