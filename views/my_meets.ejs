@@ -8,7 +8,7 @@
       <div class="card-body">
         <h3 class="card-title"><%= results[i].title %></h3>
         <p class="card-text"><%= results[i].description %></p>
-        <a href="#" class="btn btn-primary">Join Now</a>
+        <a href="<%= urls.room %><%= results[i].code %>" class="btn btn-primary">Join Now</a>
         <a href="<%= urls.modify_meet %><%= results[i].code %>" class="btn btn-primary">Modify</a>
         <button class="btn btn-danger" onclick="delete_project('<%= urls.delete_meet %><%= results[i].code %>', '<%= results[i].title %>')">Delete</button>
       </div>

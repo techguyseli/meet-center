@@ -13,7 +13,7 @@
         <p class="card-text">Responsability: <%= results[i].responsability %></p>
         <p class="card-text">Email: <%= results[i].email %></p>
         <p class="card-text">Phone number: <%= results[i].phone %></p>
-        <a href="#" class="btn btn-primary">Join Now</a>
+        <a href="<%= urls.room %><%= results[i].code %>" class="btn btn-primary">Join Now</a>
       </div>
       <div class="card-footer text-muted">
         Announced the <%= results[i].announcement_datetime %>
