@@ -11,6 +11,7 @@ const options = {
 const server = https.createServer(options, app) 
 const { Server } = require("socket.io");
 const io = new Server(server);
+const { ExpressPeerServer } = require('peer'); //WebRTC api for real time media communication
 let mysql = require('mysql'); 
 const globals = require('./globals') // importing my global variables and functions
 const body_parser = require('body-parser') // importing a module to get sent data in a post request
@@ -20,6 +21,9 @@ const uuid = require('uuid'); // module for generating random string IDs
 
 
 /* CONFIGURING THE WEB APP */
+const peerServer = ExpressPeerServer(server, {
+    debug: true
+});
 app.set('view engine', 'ejs'); // setting the template engine to ejs 
 app.use(express.static('public')); // setting the static files folder
 // configure body-parser for express
@@ -1014,10 +1018,10 @@ app.get('/room/:code', function (req, res) {
 io.on('connection', socket => {
   socket.on('join-room', (roomId, userId) => {
     socket.join(roomId)
-    socket.to(roomId).emit('user-connected', userId)
+    socket.broadcast.to(roomId).emit('user-connected', userId)
 
     socket.on('disconnect', () => {
-      socket.to(roomId).emit('user-disconnected', userId)
+      socket.broadcast.to(roomId).emit('user-disconnected', userId)
     })
   })
 })
