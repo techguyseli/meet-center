@@ -1023,6 +1023,10 @@ io.on('connection', socket => {
     socket.on('disconnect', () => {
       socket.broadcast.to(roomId).emit('user-disconnected', userId)
     })
+
+    socket.on('manual-disconnect', () => {
+      socket.broadcast.to(roomId).emit('user-disconnected', userId)
+    })
   })
 })
 

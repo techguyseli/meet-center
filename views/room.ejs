@@ -30,14 +30,15 @@
       </div>
     </div>
 
-  <div id="video-grid">
+  <div id="video-grid" class="">
   </div>
 
   <div class="fixed-bottom bg-dark text-center py-2">
-        <img src="/img/mute.png" id="mute-btn" width="50px" class="mx-3"> 
-        <img src="/img/no_video.png" id="video-btn" width="50px" class="mx-3"> 
+        <img src="/img/unmute.png" id="audio-btn" width="50px" class="mx-3" onclick="toggleAudio();"> 
+        <img src="/img/video.png" id="video-btn" width="50px" class="mx-3" onclick="toggleVideo();"> 
+        <img src="/img/no_screenshare.png" id="screenshare-btn" width="50px" class="mx-3" onclick="toggleScreenshare();"> 
         <img src="/img/people.png" id="people-btn" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling" width="50px" class="mx-3"> 
-        <img src="/img/hangup.png" id="hangup-btn" width="50px" class="mx-3"> 
+        <img src="/img/hangup.png" id="hangup-btn" width="50px" class="mx-3" onclick="hangup('<%= urls.home %>');"> 
   </div>
 
 </div>
