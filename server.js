@@ -3,7 +3,7 @@ const express = require('express')
 const app = express() 
 const https = require('https');
 const fs = require('fs'); // module for working with the file system
-// https server certificat and key
+// https certificat and key files, please change them to official ones
 const options = {
   key: fs.readFileSync("server.key"),
   cert: fs.readFileSync("server.cert"),
@@ -42,10 +42,31 @@ app.use(sessions({
 }));
 app.use(cookieParser());
 
+// deleting done meetings from database
+const intervalID = setInterval(deleteDoneMeetings, oneDay);
+function deleteDoneMeetings () {
+  console.log("Deleting done meetings...")
+  const now = new Date()
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  con.connect()
+  con.query("delete from meet where end_datetime < ?", [ now ] , function (error, results, fields) {
+    if (error) {
+      console.log(error);
+    }
+    console.log(results.affectedRows + " meetings deleted at " + globals.pretty_datetime(now.toString()) + ".")
+  });
+  con.end();
+}
+
 
 /* ROUTES */
 /*
- * it's necessary to pass these to the render function because they're needed in the partials:
+ * it's necessary to pass these to the render function because they're needed in /views/partials/header.ejs which is included in all the views:
  * sessions
  * urls
 */
@@ -70,41 +91,19 @@ let urls = {
   remove_employee : globals.render_url('remove_employee'),
   room : globals.render_url('room'),
 }
+
 // default get route
 app.get('/', (req, res) => {
-  // marking user as seen all new invites
   let session = req.session
-  if(session.email){
-    let con = mysql.createConnection({
-      host: globals.host,
-      user: globals.user,
-      password: globals.password,
-      database: globals.database
-    });
-    let now = new Date()
-    con.connect()
-    con.query('update participant set seen_invite_datetime = ? where seen_invite_datetime is NULL and emp_matr = ?', [ now, session.matr ], function (error, results) {
-      if (error)
-        res.render('error', {
-          code: 500,
-          title: "Internal Server Error",
-          message: "Something went wrong, please try again later or contact the admins.",
-          urls : urls,
-          session: session
-        });
-      else
-        res.redirect('/invites')
-    })
-    con.end();
-    return
-  }
+  if(!session.email)
+    return res.redirect("/login")
   return res.redirect('/invites')
 })
 
 // meetings' invites route
 app.get('/invites', (req, res) => {
   let session = req.session
-  // take visitors to login 
+  // prevent unlogged users from visiting the page 
   if(!session.email)
     return res.redirect('/login')
   // get invites
@@ -117,7 +116,7 @@ app.get('/invites', (req, res) => {
   let now = new Date()
   con.connect()
   con.query('select code, title, description, announcement_datetime, start_datetime, end_datetime, first_name, last_name, email, phone, responsability from meet join participant on code = meet_code join employee on meet_owner = matr where emp_matr = ? and end_datetime > ?', [session.matr, now], function (error, results) {
-    // check if there were any database errors while updating the password 
+    // check if there were any database errors while getting invites 
     if (error)
       res.render('error', {
         code: 500,
@@ -188,8 +187,8 @@ app.post('/login', (req, res) => {
     }
     else{
       // checking if account exists
-      if (results.length){
-        if (globals.compare_passwords(response.password, results[0].pass)) {
+      let passOk = globals.compare_passwords(response.password, results[0].pass)
+      if (results.length && passOk){
           // add user session
           session.matr = results[0].matr
           session.f_name = results[0].f_name
@@ -200,14 +199,6 @@ app.post('/login', (req, res) => {
           session.phone = results[0].phone
           session.resp = results[0].resp
           res.redirect("/")
-        }
-        else{
-          res.render('login', {
-            urls : urls,
-            message: "The email and/or password were incorrect, please try again.",
-            session: session
-          });
-        }
       }else{
         res.render('login', {
           urls : urls,
@@ -356,7 +347,7 @@ app.get('/my_meets', (req, res) => {
   con.end();
 });
 
-// create a new meet Page
+// create a new meet
 app.get('/create_meet', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -372,7 +363,7 @@ app.get('/create_meet', (req, res) => {
   })
 })
 
-// create a meet
+// create a meet post
 app.post('/create_meet', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -521,6 +512,7 @@ app.post('/modify_meet', (req, res) => {
   };
   // validating info
   let info_valid = globals.test_field(response.code, 'code') && globals.test_field(response.title, "titles") && globals.test_field(response.desc, "descriptions") && globals.test_dates(response.start_d, response.end_d) 
+
   if (!info_valid)
     return res.render('modify_meet', {
       session : session,
@@ -615,7 +607,7 @@ app.post('/add_participant', (req, res) => {
   });
   let now = new Date()
   con.connect()
-  con.query("insert into participant(part_code, emp_matr, meet_code) select ? as part_code, matr, ? as code from employee where email = ? and exists(select code from meet where meet_owner = ? and code = ?) and email != ?", [ uuid.v4(), response.meet_code, response.email, session.matr, response.meet_code, session.email ], function (error, results, fields) {
+  con.query("insert into participant(part_code, emp_matr, meet_code) select ? as part_code, matr, ? as code from employee where email = ? and exists(select code from meet where meet_owner = ? and code = ?) and email != ? and (select count(part_code) from participant where meet_code = ?) < 20", [ uuid.v4(), response.meet_code, response.email, session.matr, response.meet_code, session.email, response.meet_code ], function (error, results, fields) {
     if(error){
       // managing database errors
       res.render('error', {
@@ -642,9 +634,7 @@ app.post('/add_participant', (req, res) => {
   con.end();
 })
 
-
-/* ADMIN ROUTES */
-// get employees details
+// admin get employees details
 app.get('/view_employees', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -662,7 +652,6 @@ app.get('/view_employees', (req, res) => {
   con.connect()
   con.query("select matr, first_name, last_name, email, is_admin, phone, responsability as resp from employee where matr != ?", [session.matr], function (error, results, fields) {
     if(error)
-      // managing database errors
       res.render('error', {
         code: 500,
         title: "Internal Server Error",
@@ -680,7 +669,7 @@ app.get('/view_employees', (req, res) => {
   con.end();
 })
 
-// remove employee
+// admin remove employee
 app.post('/remove_employee', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -724,6 +713,7 @@ app.post('/remove_employee', (req, res) => {
   con.end();
 })
 
+// admin add employee get
 app.get('/add_employee', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -747,7 +737,7 @@ app.get('/add_employee', (req, res) => {
   })
 })
 
-// add an employee
+// admin add an employee post
 app.post('/add_employee', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -764,7 +754,7 @@ app.post('/add_employee', (req, res) => {
       urls : urls,
       session: session
     });
-  // getting necessary info
+  // getting form info
   let response = {
     f_name : String(req.body.f_name),
     l_name : String(req.body.l_name),
@@ -823,7 +813,7 @@ app.post('/add_employee', (req, res) => {
   con.end();
 })
 
-// "get" the employee details for modifying
+// admin "get" the employee details for modifying
 app.post('/modify_employee_get', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -883,7 +873,7 @@ app.post('/modify_employee_get', (req, res) => {
   con.end();
 })
 
-// modify an employee
+// admin modify an employee
 app.post('/modify_employee', (req, res) => {
   let session = req.session
   if (!session.email)
@@ -956,7 +946,7 @@ app.post('/modify_employee', (req, res) => {
       res.render('error', {
         code: 'Oops',
         title: "Nothing Changed",
-        message: "The employee wasn't modified please try again later.",
+        message: "The employee wasn't modified, maybe you entered a duplicate email, please try again later.",
         urls : urls,
         session: session
       });
@@ -975,7 +965,6 @@ app.post('/modify_employee', (req, res) => {
 
 // join a meet room, first check if the user is connected and invited to send him his secret participant code
 app.get('/room/:code', function (req, res) {
-//app.get('/room/:code', function (req, res) {
   const code = String(req.params.code)
   let session = req.session
   if (!session.email)
@@ -992,7 +981,7 @@ app.get('/room/:code', function (req, res) {
     database: globals.database
   });
   con.connect()
-  con.query("select part_code as user_id from participant where meet_code = ? and emp_matr = ? union select owner_part_code from meet where code = ? and meet_owner = ?", [ code, session.matr, code, session.matr], function (error, results, fields) {
+  con.query("select part_code, false as is_owner from participant where meet_code = ? and emp_matr = ? union select owner_part_code, true from meet where code = ? and meet_owner = ?", [ code, session.matr, code, session.matr], function (error, results, fields) {
     if(error || results.length == 0){
       // managing database errors
       res.render('error', {
@@ -1006,7 +995,9 @@ app.get('/room/:code', function (req, res) {
     else{
       return res.render('room', {
         this_room_id : code,
-        this_user_id : results[0].user_id,
+        this_user_id : session.matr,
+        part_code : results[0].part_code,
+        is_owner : results[0].is_owner,
         urls : urls,
         session : session
       })   
@@ -1015,18 +1006,86 @@ app.get('/room/:code', function (req, res) {
   con.end();
 })
 
+// function to remove a participant by matr and meet code
+function manualPartRemove (matr, roomId) {
+  let con = mysql.createConnection({
+    host: globals.host,
+    user: globals.user,
+    password: globals.password,
+    database: globals.database
+  });
+  con.connect()
+  con.query("delete from participant where emp_matr = ? and meet_code = ?", [ matr, roomId ], function (error, results, fields) {
+    if (error) {
+      console.log(error);
+    }
+  });
+  con.end();
+}
+
+// managing socket connections for meets
 io.on('connection', socket => {
-  socket.on('join-room', (roomId, userId) => {
-    socket.join(roomId)
-    socket.broadcast.to(roomId).emit('user-connected', userId)
+  socket.on('join-room', function (data) {
+    // authenticating the user
+    let sql = "select part_code from participant where emp_matr = ? and meet_code = ? and part_code = ?"
+    if (data.is_owner) sql = "select owner_part_code from meet where meet_owner = ? and code = ? and owner_part_code = ?"
+    let args = [ data.userId, data.roomId, data.part_code ]
+    let con = mysql.createConnection({
+      host: globals.host,
+      user: globals.user,
+      password: globals.password,
+      database: globals.database
+    });
+    con.connect()
+    con.query(sql, args, async function (error, results, fields) {
+      // if there is an attempt at hacking or malliciously using this service by anauthorized people then cancel the connection
+      if (error || results.length == 0) {
+        console.log(error);
+        socket.emit("msg", "An error occured, please contact the host or an admin for more info.")
+        return;
+      }
 
-    socket.on('disconnect', () => {
-      socket.broadcast.to(roomId).emit('user-disconnected', userId)
-    })
+      socket.data.id = data.userId
+      socket.data.name = data.name
+      socket.data.is_owner = data.is_owner 
+      const roomSockets = await io.in(data.roomId).fetchSockets()
+      
+      // join host before everyone for good functioning
+      if (roomSockets.length == 0 && !socket.data.is_owner) {
+        socket.emit("msg", "The host hasn't joined yet please contact him so that he joins first, then you can join.")
+        return
+      }
 
-    socket.on('manual-disconnect', () => {
-      socket.broadcast.to(roomId).emit('user-disconnected', userId)
-    })
+      const participants = []
+      for (let i = 0; i < roomSockets.length; i++) {
+        participants.push({
+          userId : roomSockets[i].data.id,
+          name : roomSockets[i].data.name
+        })
+      }
+      socket.emit("get-parts-list", participants)
+
+      socket.join(data.roomId)
+
+      socket.broadcast.to(data.roomId).emit('user-connected', data.userId, data.name)
+
+      socket.on('disconnect', () => {
+        socket.broadcast.to(data.roomId).emit('user-disconnected', data.userId)
+      })
+
+      socket.on('manual-disconnect', () => {
+        socket.broadcast.to(data.roomId).emit('user-disconnected', data.userId)
+      })
+
+      socket.on('kick', function (userId) {
+        if (socket.data.is_owner) {
+          manualPartRemove(userId, data.roomId)
+          socket.broadcast.to(data.roomId).emit('user-kicked', userId) 
+          socket.broadcast.to(data.roomId).emit('got-kicked', userId) 
+        }
+      })
+    });
+    con.end();
   })
 })
 
@@ -1047,9 +1106,8 @@ app.use(function(req, res){
     session: session
   });
 });
-
   
 // Creating https server by passing
 server.listen(3000, function (req, res) {
-  console.log("Server started at port 3000");
+  console.log("Server started at " + urls.home);
 });

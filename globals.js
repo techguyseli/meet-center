@@ -56,17 +56,14 @@ exports.encrypt = function (password) {
   var hash = bcrypt.hashSync(password, salt_length);
   return hash;
 };
-// compare a clear text password and a hash and return true if idebtical
+// compare a clear text password and a hash and return true if identical
 exports.compare_passwords = function (password, hash) {
   var passwords_identical = bcrypt.compareSync(password, hash);
   return passwords_identical;
 };
 
 /* SERVER AND URLS */
-exports.server_url = "https://localhost:3000/"
-//exports.server_url = "https://192.168.1.16:3000/"
-//exports.server_url = "https://192.168.249.120:3000/"
-//exports.server_url = "https://0813-197-253-215-226.eu.ngrok.io/"
+exports.server_url = "https://192.168.249.120:3000/"
 exports.render_url = function(page){
   return exports.server_url + page + "/"
 }
@@ -86,7 +83,7 @@ exports.pretty_datetime = function (datetime_str) {
   if (minute < 10) minute = '0' + String(minute)
   return day + '/' + month + '/' + year + ' at ' + hour + ':' + minute;
 }
-// return a properly timezoned date
+// return a properly timezoned date, may need to change according to summer time
 exports.get_tz_date = function (datetime_str){
   var datetime = new Date(datetime_str)
   var year = datetime.getFullYear(); 
