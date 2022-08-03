@@ -1,0 +1,30 @@
+<%- include('./partials/header'); %>
+<% if (results.length) { %>
+  <% for (var i = 0; i < results.length; i++){ %>
+    <div class="card text-center m-4">
+      <div class="card-header">
+        Starts <%= results[i].start_datetime %>, until <%= results[i].end_datetime %>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title"><%= results[i].title %></h3>
+        <p class="card-text"><%= results[i].description %></p>
+        <h5 class="card-title">Meeting Owner Details</h5>
+        <p class="card-text">Full name: <%= results[i].first_name %> <%= results[i].first_name %></p>
+        <p class="card-text">Responsability: <%= results[i].responsability %></p>
+        <p class="card-text">Email: <%= results[i].email %></p>
+        <p class="card-text">Phone number: <%= results[i].phone %></p>
+        <a href="<%= urls.room %><%= results[i].code %>" class="btn btn-primary">Join Now</a>
+      </div>
+      <div class="card-footer text-muted">
+        Announced the <%= results[i].announcement_datetime %>
+      </div>
+    </div>
+  <% } %>
+<% } else { %>
+<div class="alert alert-primary" role="alert">
+  You're not invited to any meeting currently!
+</div>
+<% } %>
+</div>
+<script src="/js/no_go_back.js"></script>
+<%- include('./partials/footer'); %>

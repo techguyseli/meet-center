@@ -1,0 +1,23 @@
+<%- include('./partials/header'); %>
+<% if (message) { %>
+<div class="alert alert-warning" role="alert">
+  <%= message %>
+</div>
+<% } %>
+<form action="<%= urls.create_meet %>" method="post" class="w-75 mx-auto">
+    <div class="text-light mb-2">Title</div>
+    <input type="text" class="form-control mb-3" name="title" id="title" oninput="validate_fields()">
+    <div class="text-light mb-2">Description</div>
+    <textarea class="form-control mb-3" rows="3" name="desc" id="desc" oninput="validate_fields()"></textarea>
+    <div class="text-light mb-2">Starting date and time</div>
+    <input type="datetime-local" class="form-control mb-3" name="start_d" id="start_d" oninput="validate_fields()">
+    <div class="text-light mb-2">End date and time</div>
+    <input type="datetime-local" class="form-control mb-3" name="end_d" id="end_d" oninput="validate_fields()">
+    <div id="warn" class="alert alert-danger mb-3" role="alert" hidden="true">
+    </div>
+    <button id="submitbtn" type="submit" class="btn btn-primary mb-3" disabled>Create meet</button>
+</form>
+</div>
+<script src="/js/meet_validation.js"></script>
+<script src="/js/no_go_back.js"></script>
+<%- include('./partials/footer'); %>
