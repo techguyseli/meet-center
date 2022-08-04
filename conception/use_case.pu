@@ -1,0 +1,64 @@
+@startuml use_case
+
+left to right direction
+
+' actors
+actor Employee as emp
+actor Admin as adm
+
+' usecases
+package "online meetings web app"{
+    usecase "see meeting invites" as invites
+    usecase "login" as log
+    usecase "change password" as password
+    usecase "attend meetings" as attend
+    usecase "quit meetings" as quit
+    usecase "activate/deactivate audio and video" as mymp34
+    ' usecase "chat" as chat
+    usecase "share screen" as screen
+    usecase "create meetings with participants' list" as new_meeting
+    usecase "update and delete meetings and their participants list" as mod_meeting
+    usecase "kick participants" as kick
+    ' usecase "activate/deactivate participants' audio and video" as mp34
+    usecase "manage employees' accounts" as mod_emp
+}
+
+' actor inheritence
+adm -|> emp
+' login includes
+invites ..> log : "<<include>>"
+attend ..> log : "<<include>>"
+new_meeting ..> log : "<<include>>"
+' mp34 ..> log : "<<include>>"
+password ..> log : "<<include>>"
+mod_emp ..> log : "<<include>>"
+
+' employee relationships
+emp -- invites
+emp -- attend 
+emp -- mymp34
+' emp -- chat
+emp -- screen
+emp -- new_meeting
+emp -- mod_meeting
+emp --- kick
+' emp -- mp34
+emp -- password
+emp -- quit
+
+' employee attend meeting permissions
+attend <. mymp34 : "<<include>>"
+' attend <. chat : "<<include>>"
+attend <. screen : "<<include>>"
+attend <.. quit : "<<include>>"
+
+' employee create meeting permissions
+mod_meeting ..> new_meeting : "<<include>>"
+kick ..[#green]> new_meeting : "<font color=green><<include>>"
+kick ..[#blue]> attend : "<font color=blue><<include>>"
+
+' admin relationships
+adm --- mod_emp
+
+@enduml
+	

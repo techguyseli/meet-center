@@ -18,7 +18,6 @@ CREATE TABLE `meet` (
   `description` varchar(300) DEFAULT NULL,
   `start_datetime` datetime DEFAULT NULL,
   `end_datetime` datetime DEFAULT NULL,
-  `announcement_datetime` datetime DEFAULT NULL,
   `meet_owner` varchar(50) DEFAULT NULL,
   `owner_part_code` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`code`),
@@ -30,7 +29,6 @@ CREATE TABLE `meet` (
 CREATE TABLE `participant` (
   `meet_code` varchar(50) NOT NULL,
   `emp_matr` varchar(50) NOT NULL,
-  `seen_invite_datetime` datetime DEFAULT NULL,
   `part_code` varchar(50) NOT NULL,
   PRIMARY KEY (`part_code`),
   UNIQUE KEY `meet_code` (`meet_code`,`emp_matr`),

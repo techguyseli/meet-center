@@ -115,7 +115,7 @@ app.get('/invites', (req, res) => {
   });
   let now = new Date()
   con.connect()
-  con.query('select code, title, description, announcement_datetime, start_datetime, end_datetime, first_name, last_name, email, phone, responsability from meet join participant on code = meet_code join employee on meet_owner = matr where emp_matr = ? and end_datetime > ?', [session.matr, now], function (error, results) {
+  con.query('select code, title, description, start_datetime, end_datetime, first_name, last_name, email, phone, responsability from meet join participant on code = meet_code join employee on meet_owner = matr where emp_matr = ? and end_datetime > ?', [session.matr, now], function (error, results) {
     // check if there were any database errors while getting invites 
     if (error)
       res.render('error', {
@@ -128,7 +128,6 @@ app.get('/invites', (req, res) => {
     else {
       // making the dates pretty
       for (let i = 0; i < results.length; i++){
-        results[i].announcement_datetime = globals.pretty_datetime(results[i].announcement_datetime.toString())
         results[i].start_datetime = globals.pretty_datetime(results[i].start_datetime.toString())
         results[i].end_datetime = globals.pretty_datetime(results[i].end_datetime.toString())
       }
@@ -320,7 +319,7 @@ app.get('/my_meets', (req, res) => {
   });
   let now = new Date()
   con.connect()
-  con.query('select code, title, description, announcement_datetime, start_datetime, end_datetime from meet where meet_owner = ? and end_datetime > ? order by start_datetime', [session.matr, now], function (error, results) {
+  con.query('select code, title, description, start_datetime, end_datetime from meet where meet_owner = ? and end_datetime > ? order by start_datetime', [session.matr, now], function (error, results) {
     // check if there were any database errors 
     if (error)
       res.render('error', {
@@ -333,7 +332,6 @@ app.get('/my_meets', (req, res) => {
     else {
       // making the dates pretty
       for (let i = 0; i < results.length; i++){
-        results[i].announcement_datetime = globals.pretty_datetime(results[i].announcement_datetime.toString())
         results[i].start_datetime = globals.pretty_datetime(results[i].start_datetime.toString())
         results[i].end_datetime = globals.pretty_datetime(results[i].end_datetime.toString())
       }
@@ -394,9 +392,8 @@ app.post('/create_meet', (req, res) => {
     password: globals.password,
     database: globals.database
   });
-  let now = new Date()
   con.connect()
-  con.query("insert into meet(code, title, description, start_datetime, end_datetime, announcement_datetime, meet_owner, owner_part_code) values(?, ?, ?, ?, ?, ?, ?, ?)", [ uuid.v4(), response.title, response.desc, response.start_d, response.end_d, now, session.matr, uuid.v4() ], function (error, results, fields) {
+  con.query("insert into meet(code, title, description, start_datetime, end_datetime, meet_owner, owner_part_code) values(?, ?, ?, ?, ?, ?, ?)", [ uuid.v4(), response.title, response.desc, response.start_d, response.end_d, session.matr, uuid.v4() ], function (error, results, fields) {
     if(error){
       // managing database errors
       res.render('error', {

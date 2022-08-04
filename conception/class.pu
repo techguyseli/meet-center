@@ -1,0 +1,31 @@
+@startuml
+
+' classes
+class "employee" as emp
+emp : matr
+emp : first_name
+emp : last_name
+emp : email
+emp : phone
+emp : responsability
+emp : password
+emp : is_admin
+
+class "meeting" as meet
+meet : code
+meet : title
+meet : description
+meet : start_datetime
+meet : end_datetime
+meet : owner_participation_code
+
+class "participate" as part
+part : participation_code
+
+' relationships
+emp "1" -- "0..*" meet : "own"
+emp "0..*" -- "0..*" meet
+(emp, meet) .. part
+
+
+@enduml
