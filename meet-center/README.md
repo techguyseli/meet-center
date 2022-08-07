@@ -1,5 +1,3 @@
-# meet-center
-
 ## Project structure
 
 ./add_admin.js : This is a script to properly add the first admin to the database so that he can add employees through the web app, it's helps add the admin without having to manually check if the data inserted into the database respects the constraints, it also encrypts the password for the inserted admin.
