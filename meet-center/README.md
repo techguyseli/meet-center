@@ -21,9 +21,9 @@
   <li>
     Install the necessary modules using npm.
 
-    ```bash
-    npm install
-    ```
+```bash
+npm install
+```
 
   </li>
   <li>
@@ -32,24 +32,24 @@
   <li>
     Run the add_admin.js script to add an admin to the database.
     
-    ```bash
-    node add_admin.js
-    ```
+```bash
+node add_admin.js
+```
 
   </li>
   <li>
     Now you can run the server in the terminal.
     You can either use nodemon for automatic server restart after each file save (mainly used for the development environment):
     
-    ```bash
-    npm run devStart
-    ```
+```bash
+npm run devStart
+```
     
     Or you can run the server.js file directly using node:
-    
-    ```bash
-    node server.js
-    ```
+
+```bash
+node server.js
+```
   
   </li>
 </ol>
