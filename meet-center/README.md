@@ -20,32 +20,40 @@
   </li>
   <li>
     Install the necessary modules using npm.
+
     ```bash
     npm install
     ```
+
   </li>
   <li>
     Open globals.js and modify the database settings variables, also modify the server_url variable to store the correct server url that will be put in the forms and links.
   </li>
   <li>
     Run the add_admin.js script to add an admin to the database.
+    
     ```bash
     node add_admin.js
     ```
+
   </li>
   <li>
     Now you can run the server in the terminal.
     You can either use nodemon for automatic server restart after each file save (mainly used for the development environment):
+    
     ```bash
     npm run devStart
     ```
+    
     Or you can run the server.js file directly using node:
+    
     ```bash
     node server.js
     ```
+  
   </li>
 </ol>
 
 ## Note
 
-If the dates are weirdly modified in the server consider modify the pretty_datetime function and/or the get_tz_date function in globals.js.
+If the dates are weirdly modified in the server consider modify the <b>pretty_datetime</b> function and/or the <b>get_tz_date</b> function in <b>./globals.js</b>.
