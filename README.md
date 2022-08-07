@@ -6,12 +6,12 @@ This is a Node.js online meetings web app made for [Alamana Microfinance](https:
 
 ## Git repo structure
 
-/README.md : This is just for the git repo.
+<b>/README.md</b> : This is just for the git repo.
 
-/cahier_specs_finale.pdf : This is a pdf that defines the global specifications for the web app; the functional needs, non-functional needs, management rules and the software creation timeline.
+<b>/cahier_specs_finale.pdf</b> : This is a pdf that defines the global specifications for the web app; the functional needs, non-functional needs, management rules and the software creation timeline.
 
-/conception : This directory contains some UML diagrams (the class diagram and the use case diagram).
+<b>/conception</b> : This directory contains some UML diagrams (the class diagram and the use case diagram).
 
-/meet-center : This directory contains the actual nodejs project, check /meet-center/README.md for more details.
+<b>/meet-center</b> : This directory contains the actual nodejs project, check [/meet-center](https://github.com/techguyseli/meet-center/tree/main/meet-center) for more details.
 
-/database_creation_script.sql : This is just a script to create the database tables.
+<b>/database_creation_script.sql</b> : This is just a script to create the database tables.
