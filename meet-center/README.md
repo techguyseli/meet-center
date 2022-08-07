@@ -44,13 +44,12 @@ node add_admin.js
 ```bash
 npm run devStart
 ```
-    
-    Or you can run the server.js file directly using node:
+
+Or you can run the server.js file directly using node:
 
 ```bash
 node server.js
-```
-  
+```  
   </li>
 </ol>
 
