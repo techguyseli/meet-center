@@ -1,3 +1,7 @@
+CREATE DATABASE meet_center_db;
+
+USE meet_center_db;
+
 CREATE TABLE `employee` (
   `matr` varchar(50) NOT NULL,
   `first_name` varchar(20) DEFAULT NULL,
@@ -36,3 +40,9 @@ CREATE TABLE `participant` (
   CONSTRAINT `participant_ibfk_1` FOREIGN KEY (`meet_code`) REFERENCES `meet` (`code`) ON DELETE CASCADE,
   CONSTRAINT `participant_ibfk_2` FOREIGN KEY (`emp_matr`) REFERENCES `employee` (`matr`) ON DELETE CASCADE
 );
+
+CREATE USER 'meet_center_user1'@'localhost' IDENTIFIED BY 'yguhijok948651364851_-?:::iuhygtfy';
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON meet_center_db.* TO 'meet_center_user1'@'localhost';
+
+FLUSH PRIVILEGES;
