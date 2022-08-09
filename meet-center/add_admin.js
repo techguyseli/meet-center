@@ -6,6 +6,7 @@
 var mysql = require('mysql'); // mysql interface
 const readline = require('readline-sync'); // module to read user input
 var globals = require('./globals'); // module to import global variables and functions
+var uuid = require('uuid'); // module for generating random IDs
 
 /* WELCOME MESSAGE */
 console.log("You are now going to add an admin to the meeting center app.");
@@ -16,16 +17,13 @@ var matr, first_name, last_name, email, password, phone, resp;
 do{
   // fields specs
   console.log("Please fill everything as follows:\n");
-  console.log("matr: 5 or 2 letters followed by 6 numbers.");
   console.log("first and last name: between 5 and 20 letters each.");
   console.log("email: has to be in this domain @alamana.org.ma.");
   console.log("password: needs to be between 12 and 40 characters.\n");
+  console.log("responsability: 1-50 characters.\n");
+  console.log("phone number: exactly 10 digits.\n");
   // input gathering and testing
-  matr = readline.question("matr: ");
-  if(!globals.test_field(matr, "code")){
-    console.log("the matr is not in the desired form, please read the fields specifications.\n");
-    continue;
-  }
+  matr = uuid.v4();
   first_name = readline.question("First Name: ");
   if(!globals.test_field(first_name, "name")){
     console.log("the first name is not in the desired form, please read the fields specifications.\n");
