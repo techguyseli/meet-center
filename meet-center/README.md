@@ -12,14 +12,52 @@
   <li><b>./views</b> : This directory contains views made with the ejs templating language, <b>./views/partials</b> contains the header and footer that's common with all the views to avoid code repitition.</li>
 </ul>
 
-## Launching the server for the first time
+## Dependencies
+
+<ul>
+  <li>A stable, relatively new version of MySQL (or WAMP development stack for windows).</li>
+  <li>Node.js and npm.</li>
+  <li>Git <b>(optional)</b>.</li>
+</ul>
+
+## Deploying the server for the first time
 
 <ol>
   <li>
-    Start MySql service and create the database, the tables (using ../database_creation_script.sql), the user and grant him the wanted privilages over the database (preferably all privilages).
+    Start MySQL service.
   </li>
   <li>
-    Install the necessary modules using npm.
+    Open MySQL in the terminal or MySQL Workbench GUI, and execute <a href='https://github.com/techguyseli/meet-center/blob/main/database_creation_script.sql'>this SQL script</a> in MySQL, that will create the database, tables and user (<b>It's recommended to change the database user password to a stronger one)</b>.
+  </li>
+  <li>
+    Open another terminal window and type this command by replacing <b>/my/path/</b> with the parent path you want to put the project in:
+
+
+```bash
+cd /my/path/ 
+```
+
+  </li>
+  <li>
+    Then in the same shell, execute this command to clone the project:
+
+```bash
+git clone https://github.com/techguyseli/meet-center 
+```
+
+    Or if git is not installed you can clone it manually by clicking <a href="https://github.com/techguyseli/meet-center/archive/refs/heads/main.zip">this link</a> and downloading the zip in the specified path and extracting it there.
+  </li>
+  <li>
+    Run this command to move to the project folder:
+
+
+```bash
+cd ./meet-center/meet-center
+```
+
+  </li> 
+  <li>
+    Install the necessary modules using this npm command:
 
 ```bash
 npm install
@@ -27,7 +65,7 @@ npm install
 
   </li>
   <li>
-    Open globals.js and modify the database settings variables, also modify the server_url variable to store the correct server url that will be put in the forms and links.
+    Open the file ./globals.js from your current position, and modify the database settings to the same ones you executed in the sql script earlier (the username, database name, password...), also modify the server_url variable to store the correct server url that will be put in the forms and links.
   </li>
   <li>
     Run the add_admin.js script to add an admin to the database.
@@ -55,4 +93,11 @@ node server.js
 
 ## Note
 
-If the dates are weirdly modified in the server consider modify the <b>pretty_datetime</b> function and/or the <b>get_tz_date</b> function in <b>./globals.js</b>.
+<ul>
+  <li>
+    If the dates are weirdly modified in the server consider modify the <b>pretty_datetime</b> function and/or the <b>get_tz_date</b> function in <b>./globals.js</b>.
+  </li>
+  <li>
+    It's better when more than 2 participants join a meeting, to deactivate their audio and video unless when they're needed, in order to have optimal performance.
+  </li>
+</ul>
