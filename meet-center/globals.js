@@ -63,7 +63,7 @@ exports.compare_passwords = function (password, hash) {
 };
 
 /* SERVER AND URLS */
-exports.server_url = "https://192.168.1.16:3000/"
+exports.server_url = "https://localhost:3000/"
 exports.render_url = function(page){
   return exports.server_url + page + "/"
 }

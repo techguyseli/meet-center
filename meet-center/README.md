@@ -20,18 +20,17 @@
   <li>Git <b>(optional)</b>.</li>
 </ul>
 
-## Deploying the server for the first time
+## Deployment steps
 
 <ol>
   <li>
     Start MySQL service.
   </li>
   <li>
-    Open MySQL in the terminal or MySQL Workbench GUI, and execute <a href='https://github.com/techguyseli/meet-center/blob/main/database_creation_script.sql'>this SQL script</a> in MySQL, that will create the database, tables and user (<b>It's recommended to change the database user password to a stronger one)</b>.
+  Open MySQL in the terminal or MySQL Workbench GUI as root, and execute <a href='https://github.com/techguyseli/meet-center/blob/main/database_creation_script.sql' target='_blank'>this SQL script</a> in MySQL, that will create the database, tables and user <b>(It's recommended to change the database user password to a stronger one)</b>.
   </li>
   <li>
     Open another terminal window and type this command by replacing <b>/my/path/</b> with the parent path you want to put the project in:
-
 
 ```bash
 cd /my/path/ 
@@ -45,10 +44,10 @@ cd /my/path/
 git clone https://github.com/techguyseli/meet-center 
 ```
 
-    Or if git is not installed you can clone it manually by clicking <a href="https://github.com/techguyseli/meet-center/archive/refs/heads/main.zip">this link</a> and downloading the zip in the specified path and extracting it there.
+Or if git is not installed you can clone it manually by clicking <a href="https://github.com/techguyseli/meet-center/archive/refs/heads/main.zip">this link</a> and downloading the zip in the specified path and extracting it there.
   </li>
   <li>
-    Run this command to move to the project folder:
+    Then run this command to move to the project folder:
 
 
 ```bash
@@ -65,10 +64,10 @@ npm install
 
   </li>
   <li>
-    Open the file ./globals.js from your current position, and modify the database settings to the same ones you executed in the sql script earlier (the username, database name, password...), also modify the server_url variable to store the correct server url that will be put in the forms and links.
+  Open the file <b>./globals.js</b> from your current position, and modify the database settings to the same ones you executed in the sql script earlier (the username, database name, password...), also modify the server_url variable to store the correct <b>https</b> server url (domain or ip:port) that will be put in the forms and links.
   </li>
   <li>
-    Run the add_admin.js script to add an admin to the database.
+  Run the <b>./add_admin.js</b> script to add an admin to the database so that he can log in to the web app and add employees.
     
 ```bash
 node add_admin.js
@@ -77,7 +76,7 @@ node add_admin.js
   </li>
   <li>
     Now you can run the server in the terminal.
-    You can either use nodemon for automatic server restart after each file save (mainly used for the development environment):
+    You can either use this command for automatic server restart after each file save (mainly used for the development environment):
     
 ```bash
 npm run devStart
@@ -100,4 +99,11 @@ node server.js
   <li>
     It's better when more than 2 participants join a meeting, to deactivate their audio and video unless when they're needed, in order to have optimal performance.
   </li>
+  <li>
+  When entering a meet you're gonna be asked to activate the audio and video, just accept because it's necessary for proper functionning of the call, then as soon as you enter the meeting you can deactivate both or keep them.
+  </li>
 </ul>
+
+## Contact the developer
+If there were any problems or questions feel free to contact the developer through this email:
+<b>kassouselaiman@gmail.com</b> 
