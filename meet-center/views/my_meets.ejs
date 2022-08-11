@@ -12,9 +12,6 @@
         <a href="<%= urls.modify_meet %><%= results[i].code %>" class="btn btn-primary">Modify</a>
         <button class="btn btn-danger" onclick="delete_project('<%= urls.delete_meet %><%= results[i].code %>', '<%= results[i].title %>')">Delete</button>
       </div>
-      <div class="card-footer text-muted">
-        Announced the <%= results[i].announcement_datetime %>
-      </div>
     </div>
   <% } %>
 <% } else { %>

@@ -431,9 +431,8 @@ app.get('/delete_meet/:meet_code', (req, res) => {
     password: globals.password,
     database: globals.database
   });
-  let now = new Date()
   con.connect()
-  con.query("delete from meet where code = ? and meet_owner = ? and start_datetime > ?", [ String(req.params.meet_code), session.matr, now ], function (error, results, fields) {
+  con.query("delete from meet where code = ? and meet_owner = ?", [ String(req.params.meet_code), session.matr], function (error, results, fields) {
     if(error || results.affectedRows == 0)
       // managing database errors
       res.render('error', {
